@@ -5,6 +5,7 @@ import com.reply.teambproject.enums.Category;
 import com.reply.teambproject.enums.Gender;
 import com.reply.teambproject.model.Movie;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -30,4 +31,8 @@ public interface MovieMappers {
     default Gender mapGender(Integer code) {
         return Gender.getGenderEnum(code);
     }
+
+    List<MovieDTO> map(List<Movie> listAll);
+
+    void map(MovieDTO movieDto, @MappingTarget Movie movie);
 }

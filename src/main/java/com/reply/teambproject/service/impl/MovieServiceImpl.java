@@ -1,17 +1,17 @@
 package com.reply.teambproject.service.impl;
 
-import com.reply.teambproject.enums.ErrorCode;
-import com.reply.teambproject.exception.AlreadyInDbException;
-import com.reply.teambproject.model.Actor;
+import com.reply.teambproject.dto.MovieDTO;
+import com.reply.teambproject.mapper.MovieMappers;
 import com.reply.teambproject.model.Movie;
-import com.reply.teambproject.repository.ActorRepository;
 import com.reply.teambproject.repository.MovieRepository;
-import com.reply.teambproject.service.ActorService;
 import com.reply.teambproject.service.MovieService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.persistence.PersistenceException;
 import javax.transaction.Transactional;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,41 +20,64 @@ public class MovieServiceImpl implements MovieService {
 
     @Inject
     private MovieRepository movieRepository;
+    @Inject
+    private MovieMappers movieMappers;
 
     @Override
     @Transactional
-    public Long addMovie(Movie movie) {
+    public Long addMovie(MovieDTO movieDto) {
 
+        Movie movie = movieMappers.map(movieDto);
         movieRepository.persist(movie);
-        movieRepository.flush();
-        return movie.getId();
+        movie.persistAndFlush();
+        movie.persist();
+        if(movie.isPersistent()) {
+            Optional<Movie> optionalMov = movieRepository.findByIdOptional(movie.getId());
+            movie = optionalMov.orElseThrow(NotFoundException::new);
+            return movie.getId();
+        } else {
+            throw new PersistenceException();
+        }
 
     }
 
     @Override
-    public List<Movie> getMovies() {
-        return movieRepository.listAll();
+    public List<MovieDTO> getMovies() {
+        return movieMappers.map(movieRepository.listAll());
     }
 
     @Override
-    public Optional<Movie> findById(Long id) {
-        return movieRepository.findByIdOptional(id);
+    public MovieDTO getMovie(Long movieId) {
+        Optional<Movie> optionalMovie = Movie.findByIdOptional(movieId);
+        Movie movie = optionalMovie.orElseThrow(NotFoundException::new);
+        return movieMappers.map(movie);
     }
 
     @Override
-    public void update(Long movieId, Movie movie) {
-        movieRepository.findByIdOptional(movieId).map(mov -> {
-            mov.setName(movie.getName());
-            mov.setCategory(movie.getCategory());
-            mov.setDescription(movie.getDescription());
-            movieRepository.persist(mov);
-            return mov;
-        });
+    public void save(Movie movie) {
+        movieRepository.persist(movie);
+
+    }
+    @Override
+    @Transactional
+    public MovieDTO update(Long movieId, MovieDTO movieDto) {
+
+        Movie movie  = movieRepository.findById(movieId);
+        if(movie == null) {
+            throw new WebApplicationException("Movie with id " + movieId + " does not exist.", 404);
+        }
+        movieMappers.map(movieDto,movie);
+        movie =  movieRepository.getEntityManager().merge(movie);
+        return movieMappers.map(movie);
     }
 
     @Override
+    @Transactional
     public void delete(Long movieId) {
-        movieRepository.deleteById(movieId);
+        boolean isEntityDeleted = movieRepository.deleteById(movieId);
+        if(!isEntityDeleted) {
+            throw new WebApplicationException("Movie with id of " + movieId + " does not exist.", 404);
+        }
     }
 
 

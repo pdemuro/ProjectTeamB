@@ -36,74 +36,55 @@ public class MovieController {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response addActor(@PathParam("movieId") Long movieId, @Valid ActorDTO actor, @Context UriInfo uriInfo) {
-
-        Long actorId = actorService.addActor(actorMappers.map(actor));
+    public Response addActor(@PathParam("movieId") Long movieId, @Valid ActorDTO actorDto, @Context UriInfo uriInfo) {
 
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
-        uriBuilder.path(Integer.toString(Math.toIntExact(actorId)));
+        uriBuilder.path(Integer.toString(Math.toIntExact(actorService.addActor(actorDto, movieId))));
         return Response.created(uriBuilder.build()).build();
     }
     @Path("{movieId}/actors")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllActors(@PathParam("movieId") Long movieId) {
-        if (movieService.findById(movieId).isEmpty()) {
-            Response.status(Response.Status.NOT_FOUND);
-        }
-        List<Actor> actors = actorService.getActors();
-        return Response.ok().entity(actors).build();
+        movieService.getMovie(movieId);
+        return Response.ok().entity(actorService.getActors()).build();
     }
 
     @Path("{movieId}/actors/{actorID}")
     @GET
     public Response getActor(@PathParam("movieId") Long movieId, @PathParam("actorId") Long actorId) {
-        if (movieService.findById(movieId).isEmpty()) {
-            Response.status(Response.Status.NOT_FOUND);
-        }
-
-        Response.ResponseBuilder conditionalResponse =  actorService.findById(actorId)
-                .map(actor -> Response.ok().entity(actor))
-                .orElse(Response.status(Response.Status.NOT_FOUND));
-
-        if(conditionalResponse != null)
-            return conditionalResponse.build();
-        // preconditions are OK
-        return Response.ok(conditionalResponse).build();
+        movieService.getMovie(movieId);
+        return Response.ok( actorService.getActor(actorId)).build();
 
     }
-    
-/*
-    @Path("/movies/{movieId}/actors/{actorID}")
+
+    @Transactional
+    @Path("/{movieId}/actors/{actorID}")
     @PUT
-    public Response modifyActor(@PathParam("movieId") Long movieId, @PathParam("actorId") Long actorId, @Valid ActorDTO actor) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response modifyActor(@PathParam("movieId") Long movieId, @PathParam("actorId") Long actorId, @Valid ActorDTO actorDto) {
 
-        if (!movieService.findById(movieId).isPresent()) {
-            Response.status(Response.Status.NOT_FOUND);
-        }
-
-        actorService.update(actorId, actorMappers.map(actor));
-        return Response.ok().build();
+        movieService.getMovie(movieId);
+        return Response.ok(actorService.update(actorId, actorDto)).build();
     }
 
-    @Path("/movies/{movieId}/actors/{actorID}")
+    @Transactional
+    @Path("/{movieId}/actors/{actorID}")
     @DELETE
     public Response deleteActor(@PathParam("movieId") Long movieId, @PathParam("actorId") Long actorId) {
 
-        if (!movieService.findById(movieId).isPresent()) {
-            Response.status(Response.Status.NOT_FOUND);
-        }
+        movieService.getMovie(movieId);
         actorService.delete(actorId);
         return Response.ok().build();
-    }*/
+    }
 
     @Transactional
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response addMovie(@Valid MovieDTO movie, @Context UriInfo uriInfo) {
+    public Response addMovie(@Valid MovieDTO movieDto, @Context UriInfo uriInfo) {
 
-        Long movieId = movieService.addMovie(movieMappers.map(movie));
+        Long movieId = movieService.addMovie(movieDto);
 
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         uriBuilder.path(Integer.toString(Math.toIntExact(movieId)));
@@ -113,31 +94,32 @@ public class MovieController {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllMovies() {
-
-        List<Movie> movies = movieService.getMovies();
-        return Response.ok().entity(movies).build();
+        return Response.ok().entity( movieService.getMovies()).build();
     }
+
 
     @Path("/{movieId}")
     @GET
     public Response getMovie(@PathParam("movieId") Long movieId) {
-        Response.ResponseBuilder conditionalResponse =  movieService.findById(movieId)
-                .map(movie -> Response.ok().entity(movie))
-                .orElse(Response.status(Response.Status.NOT_FOUND));
-
-        if(conditionalResponse != null)
-            return conditionalResponse.build();
-        // preconditions are OK
-        return Response.ok(conditionalResponse).build();
-
+        return Response.ok( movieService.getMovie(movieId)).build();
     }
 
-    /*@Path("/movies/{movieId}")
+    @Transactional
+    @Path("/{movieId}")
     @PUT
-    public Response modifyActor(@PathParam("movieId") Long movieId, @Valid MovieDTO movie) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response modifyMovie(@PathParam("movieId") Long movieId, @Valid MovieDTO movieDto) {
+        return Response.ok(movieService.update(movieId, movieDto)).build();
+    }
 
-        movieService.update(movieId, movieMappers.map(movie));
+    @Transactional
+    @Path("/{movieId}")
+    @DELETE
+    public Response deleteMovie(@PathParam("movieId") Long movieId) {
+
+        movieService.delete(movieId);
         return Response.ok().build();
-    }*/
+    }
 }
 

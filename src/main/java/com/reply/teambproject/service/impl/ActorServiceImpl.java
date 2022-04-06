@@ -1,14 +1,18 @@
 package com.reply.teambproject.service.impl;
 
-import com.reply.teambproject.enums.ErrorCode;
-import com.reply.teambproject.exception.AlreadyInDbException;
+import com.reply.teambproject.dto.ActorDTO;
+import com.reply.teambproject.mapper.ActorMappers;
 import com.reply.teambproject.model.Actor;
 import com.reply.teambproject.repository.ActorRepository;
 import com.reply.teambproject.service.ActorService;
+import com.reply.teambproject.service.MovieService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.persistence.PersistenceException;
 import javax.transaction.Transactional;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.WebApplicationException;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,41 +21,62 @@ public class ActorServiceImpl implements ActorService {
 
     @Inject
     private ActorRepository actorRepository;
+    @Inject
+    private ActorMappers actorMappers;
+
+    @Inject
+    private MovieService movieService;
 
     @Override
     @Transactional
-    public Long addActor(Actor actor) {
+    public Long addActor(ActorDTO actorDto, Long movieId) {
+
+
+        Actor actor = actorMappers.map(actorDto);
         actorRepository.persist(actor);
-        actorRepository.flush();
-        return actor.getId();
+        actor.persistAndFlush();
+        actor.persist();
+        if(actor.isPersistent()) {
+            Optional<Actor> optionalAct = actorRepository.findByIdOptional(actor.getId());
+            actor = optionalAct.orElseThrow(NotFoundException::new);
+            return actor.getId();
+        } else {
+            throw new PersistenceException();
+        }
     }
 
     @Override
-    public List<Actor> getActors() {
-        return actorRepository.listAll();
+    public List<ActorDTO> getActors() {
+        return actorMappers.map(actorRepository.listAll());
     }
 
     @Override
-    public Optional<Actor> findById(Long id) {
-        return actorRepository.findByIdOptional(id);
+    public ActorDTO getActor(Long actorId) {
+        Optional<Actor> optionalActor = Actor.findByIdOptional(actorId);
+        Actor actor = optionalActor.orElseThrow(NotFoundException::new);
+        return actorMappers.map(actor);
     }
 
     @Override
-    public void update(Long actorId, Actor actor) {
+    @Transactional
+    public ActorDTO update(Long actorId, ActorDTO actorDto) {
 
-        actorRepository.findByIdOptional(actorId).map(act -> {
-            act.setFirstName(actor.getFirstName());
-            act.setLastName(actor.getLastName());
-            act.setGender(actor.getGender());
-            actorRepository.persist(act);
-            return act;
-        });
-
+        Actor actor  = actorRepository.findById(actorId);
+        if(actor == null) {
+            throw new WebApplicationException("Actor with id " + actorId + " does not exist.", 404);
+        }
+        actorMappers.map(actorDto,actor);
+        actor =  actorRepository.getEntityManager().merge(actor);
+        return actorMappers.map(actor);
     }
 
     @Override
+    @Transactional
     public void delete(Long actorId) {
-        actorRepository.deleteById(actorId);
+        boolean isEntityDeleted = actorRepository.deleteById(actorId);
+        if(!isEntityDeleted) {
+            throw new WebApplicationException("Actor with id of " + actorId + " does not exist.", 404);
+        }
     }
 
 

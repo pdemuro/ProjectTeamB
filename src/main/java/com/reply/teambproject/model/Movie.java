@@ -26,7 +26,7 @@ public class Movie extends PanacheEntityBase {
 
     private String name;
 
-    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Actor> actors = new ArrayList<>();
 
     private String description;

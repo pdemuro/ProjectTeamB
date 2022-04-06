@@ -7,6 +7,7 @@ import com.reply.teambproject.enums.Gender;
 import com.reply.teambproject.model.Actor;
 import com.reply.teambproject.model.Movie;
 import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.util.List;
@@ -25,4 +26,8 @@ public interface ActorMappers {
     default Gender map(Integer code) {
         return Gender.getGenderEnum(code);
     }
+
+    List<ActorDTO> map(List<Actor> listAll);
+
+    void map(ActorDTO actorDto, @MappingTarget Actor actor);
 }
