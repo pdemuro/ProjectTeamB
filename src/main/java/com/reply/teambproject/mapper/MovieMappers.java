@@ -4,6 +4,7 @@ import com.reply.teambproject.dto.MovieDTO;
 import com.reply.teambproject.enums.Category;
 import com.reply.teambproject.enums.Gender;
 import com.reply.teambproject.model.Movie;
+import com.reply.teambproject.view.ViewMovie;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
@@ -12,7 +13,7 @@ import java.util.List;
 @Mapper(componentModel = "cdi")
 public interface MovieMappers {
 
-    MovieDTO map(Movie movie);
+    ViewMovie map(Movie movie);
 
     Movie map(MovieDTO movie);
 
@@ -32,7 +33,9 @@ public interface MovieMappers {
         return Gender.getGenderEnum(code);
     }
 
-    List<MovieDTO> map(List<Movie> listAll);
+    List<ViewMovie> map(List<Movie> listAll);
 
     void map(MovieDTO movieDto, @MappingTarget Movie movie);
+
+    Movie map(ViewMovie movie);
 }

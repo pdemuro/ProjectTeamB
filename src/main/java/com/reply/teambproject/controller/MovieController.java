@@ -2,10 +2,6 @@ package com.reply.teambproject.controller;
 
 import com.reply.teambproject.dto.ActorDTO;
 import com.reply.teambproject.dto.MovieDTO;
-import com.reply.teambproject.mapper.ActorMappers;
-import com.reply.teambproject.mapper.MovieMappers;
-import com.reply.teambproject.model.Actor;
-import com.reply.teambproject.model.Movie;
 import com.reply.teambproject.service.ActorService;
 import com.reply.teambproject.service.MovieService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +11,6 @@ import javax.transaction.Transactional;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -26,10 +21,6 @@ public class MovieController {
     ActorService actorService;
     @Inject
     MovieService movieService;
-    @Inject
-    ActorMappers actorMappers;
-    @Inject
-    MovieMappers movieMappers;
 
     @Transactional
     @Path("{movieId}/actors")
@@ -47,7 +38,7 @@ public class MovieController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAllActors(@PathParam("movieId") Long movieId) {
         movieService.getMovie(movieId);
-        return Response.ok().entity(actorService.getActors()).build();
+        return Response.ok().entity(actorService.getActorsByMovieId(movieId)).build();
     }
 
     @Path("{movieId}/actors/{actorID}")

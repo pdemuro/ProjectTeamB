@@ -5,6 +5,7 @@ import com.reply.teambproject.mapper.MovieMappers;
 import com.reply.teambproject.model.Movie;
 import com.reply.teambproject.repository.MovieRepository;
 import com.reply.teambproject.service.MovieService;
+import com.reply.teambproject.view.ViewMovie;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -42,12 +43,12 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public List<MovieDTO> getMovies() {
+    public List<ViewMovie> getMovies() {
         return movieMappers.map(movieRepository.listAll());
     }
 
     @Override
-    public MovieDTO getMovie(Long movieId) {
+    public ViewMovie getMovie(Long movieId) {
         Optional<Movie> optionalMovie = Movie.findByIdOptional(movieId);
         Movie movie = optionalMovie.orElseThrow(NotFoundException::new);
         return movieMappers.map(movie);
@@ -60,7 +61,7 @@ public class MovieServiceImpl implements MovieService {
     }
     @Override
     @Transactional
-    public MovieDTO update(Long movieId, MovieDTO movieDto) {
+    public ViewMovie update(Long movieId, MovieDTO movieDto) {
 
         Movie movie  = movieRepository.findById(movieId);
         if(movie == null) {
