@@ -38,4 +38,5 @@ public interface MovieMappers {
     void map(MovieDTO movieDto, @MappingTarget Movie movie);
 
     Movie map(ViewMovie movie);
+
 }

@@ -6,6 +6,8 @@ import com.reply.teambproject.model.Movie;
 import com.reply.teambproject.repository.MovieRepository;
 import com.reply.teambproject.service.MovieService;
 import com.reply.teambproject.view.ViewMovie;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
+import io.quarkus.panache.common.Page;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -43,8 +45,10 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public List<ViewMovie> getMovies() {
-        return movieMappers.map(movieRepository.listAll());
+    public List<ViewMovie> getMovies(Integer limit, Integer offset) {
+        PanacheQuery<Movie> movies = movieRepository.findAll();
+
+        return movieMappers.map(movies.page(limit, offset).list());
     }
 
     @Override

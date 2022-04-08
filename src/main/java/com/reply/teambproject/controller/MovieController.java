@@ -28,7 +28,7 @@ public class MovieController {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response addActor(@PathParam("movieId") Long movieId, @Valid ActorDTO actorDto, @Context UriInfo uriInfo) {
-
+        movieService.getMovie(movieId);
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         uriBuilder.path(Integer.toString(Math.toIntExact(actorService.addActor(actorDto, movieId))));
         return Response.created(uriBuilder.build()).build();
@@ -36,7 +36,7 @@ public class MovieController {
     @Path("{movieId}/actors")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllActors(@PathParam("movieId") Long movieId) {
+    public Response getAllActors(@PathParam("movieId") Long movieId ) {
         movieService.getMovie(movieId);
         return Response.ok().entity(actorService.getActorsByMovieId(movieId)).build();
     }
@@ -84,8 +84,8 @@ public class MovieController {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getAllMovies() {
-        return Response.ok().entity( movieService.getMovies()).build();
+    public Response getAllMovies( @DefaultValue("1") @QueryParam("limit") Integer limit,@DefaultValue("20") @QueryParam("offset") Integer offset) {
+        return Response.ok().entity( movieService.getMovies(limit, offset)).build();
     }
 
 

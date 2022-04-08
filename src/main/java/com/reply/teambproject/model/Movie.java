@@ -29,6 +29,7 @@ public class Movie extends PanacheEntityBase {
     @OneToMany(mappedBy = "movie", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Actor> actors = new ArrayList<>();
 
+    @Column(length = 496)
     private String description;
 
     @Enumerated(EnumType.STRING)
