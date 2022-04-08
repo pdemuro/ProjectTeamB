@@ -43,6 +43,7 @@ public class MovieController {
 
     @Path("{movieId}/actors/{actorID}")
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getActor(@PathParam("movieId") Long movieId, @PathParam("actorId") Long actorId) {
         movieService.getMovie(movieId);
         return Response.ok( actorService.getActor(actorId)).build();

@@ -10,6 +10,7 @@ import org.mapstruct.MappingTarget;
 import java.util.List;
 
 @Mapper(componentModel = "cdi")
+
 public interface ActorMappers {
 
     ViewActor map(Actor actor);

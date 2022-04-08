@@ -53,16 +53,11 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public ViewMovie getMovie(Long movieId) {
-        Optional<Movie> optionalMovie = Movie.findByIdOptional(movieId);
+        Optional<Movie> optionalMovie = movieRepository.findByIdOptional(movieId);
         Movie movie = optionalMovie.orElseThrow(NotFoundException::new);
         return movieMappers.map(movie);
     }
 
-    @Override
-    public void save(Movie movie) {
-        movieRepository.persist(movie);
-
-    }
     @Override
     @Transactional
     public ViewMovie update(Long movieId, MovieDTO movieDto) {

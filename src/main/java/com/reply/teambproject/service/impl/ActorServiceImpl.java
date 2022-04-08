@@ -41,7 +41,7 @@ public class ActorServiceImpl implements ActorService {
         actor.persistAndFlush();
         actor.persist();
         if (actor.isPersistent()) {
-            Optional<Actor> optionalAct = actorRepository.findByIdOptional(actor.getId());
+            Optional<Actor> optionalAct = findByIdOptional(actor.getId());
             actor = optionalAct.orElseThrow(NotFoundException::new);
             return actor.getId();
         } else {
@@ -56,9 +56,15 @@ public class ActorServiceImpl implements ActorService {
 
     @Override
     public ViewActor getActor(Long actorId) {
-        Optional<Actor> optionalActor = Actor.findByIdOptional(actorId);
+        Optional<Actor> optionalActor = findByIdOptional(actorId);
         Actor actor = optionalActor.orElseThrow(NotFoundException::new);
         return actorMappers.map(actor);
+    }
+
+
+    @Override
+    public Optional<Actor> findByIdOptional(Long id) {
+        return actorRepository.findByIdOptional(id);
     }
 
     @Override

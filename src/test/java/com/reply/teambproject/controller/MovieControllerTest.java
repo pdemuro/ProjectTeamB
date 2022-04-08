@@ -4,36 +4,24 @@ import com.reply.teambproject.dto.ActorDTO;
 import com.reply.teambproject.dto.MovieDTO;
 import com.reply.teambproject.enums.Category;
 import com.reply.teambproject.enums.Gender;
-import com.reply.teambproject.mapper.ActorMappers;
-import com.reply.teambproject.mapper.MovieMappers;
 import com.reply.teambproject.model.Actor;
 import com.reply.teambproject.model.Movie;
-import com.reply.teambproject.service.ActorService;
-import com.reply.teambproject.service.MovieService;
+import com.reply.teambproject.service.impl.ActorServiceImpl;
+import com.reply.teambproject.service.impl.MovieServiceImpl;
 import com.reply.teambproject.view.ViewActor;
 import com.reply.teambproject.view.ViewMovie;
-import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
-import io.restassured.RestAssured;
 import org.apache.http.HttpHeaders;
-import org.apache.http.entity.ContentType;
-import org.hamcrest.Matcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 
 @QuarkusTest
 class MovieControllerTest {
@@ -81,11 +69,21 @@ class MovieControllerTest {
         viewMovie.setName(movie.getName());
         viewMovie.setDescription(movie.getDescription());
         viewMovie.setCategory(Category.ACTION.getCode());
+
+        MovieServiceImpl mockMovieService = Mockito.mock(MovieServiceImpl.class);
+        Mockito.when(mockMovieService.getMovie(movie.getId())).thenReturn(viewMovie);
+        QuarkusMock.installMockForType(mockMovieService, MovieServiceImpl.class);
+
+        ActorServiceImpl mockActorService = Mockito.mock(ActorServiceImpl.class);
+        Mockito.when(mockActorService.addActor(actorDto, movie.getId())).thenReturn(actor.getId());
+        Mockito.when(mockActorService.findByIdOptional(actor.getId())).thenReturn(Optional.of(actor));
+        QuarkusMock.installMockForType(mockActorService, ActorServiceImpl.class);
+
     }
 
     @Test
     void addActor() {
-        addMovie();
+
         given()
                 .body(actorDto)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
@@ -93,8 +91,7 @@ class MovieControllerTest {
                 .when()
                 .post("/movies/"+movie.getId()+"/actors")
                 .then()
-                .statusCode(Response.Status.CREATED.getStatusCode())
-                .header("location", "http://localhost:8081/movies/"+movie.getId()+"/actors/"+actor.getId());
+                .statusCode(Response.Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -110,8 +107,6 @@ class MovieControllerTest {
 
     @Test
     void getActor() {
-        addMovie();
-        addActor();
         given()
                 .when()
                 .get("/movies/"+movie.getId()+"/actors/"+actor.getId())
@@ -121,10 +116,22 @@ class MovieControllerTest {
 
     @Test
     void modifyActor() {
+        given()
+                .when()
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .put("/movies/"+movie.getId()+"/actors/"+actor.getId())
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
     void deleteActor() {
+        given()
+                .when()
+                .delete("/movies/"+movie.getId()+"/actors/"+actor.getId())
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
@@ -137,23 +144,43 @@ class MovieControllerTest {
                 .when()
                 .post("/movies")
                 .then()
-                .statusCode(Response.Status.CREATED.getStatusCode())
-                .header("location", "http://localhost:8081/movies/1");
+                .statusCode(Response.Status.CREATED.getStatusCode());
     }
 
     @Test
     void getAllMovies() {
+
+        given()
+                .when()
+                .get("/movies/")
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
     void getMovie() {
+        given()
+                .when()
+                .get("/movies/"+movie.getId())
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
     void modifyMovie() {
+        given()
+                .when()
+                .get("/movies/"+movie.getId()+"/actors/"+actor.getId())
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
     void deleteMovie() {
+        given()
+                .when()
+                .delete("/movies/"+movie.getId())
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode());
     }
 }

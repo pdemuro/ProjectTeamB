@@ -11,6 +11,7 @@ import org.mapstruct.MappingTarget;
 import java.util.List;
 
 @Mapper(componentModel = "cdi")
+
 public interface MovieMappers {
 
     ViewMovie map(Movie movie);
